@@ -30,6 +30,10 @@ from haystack import signals
 
 
 
+
+
+
+
 class Book(models.Model):
     TRANSLATING = 'Перекладається'
     COMPLETED = 'Завершено'
@@ -56,8 +60,8 @@ class Book(models.Model):
     slug = models.SlugField(unique=True, blank=True)
     image = models.ImageField(upload_to=book_directory_path, blank=True, null=True)
     description = models.TextField(blank=True, null=True)
-    viewed_by = models.ManyToManyField(User, blank=True, related_name="viewed_books") 
-    pub_date = models.DateField(verbose_name='Дата створення', default=timezone.now) 
+    viewed_by = models.ManyToManyField(User, blank=True, related_name="viewed_books")  # Связь "многие ко многим" с моделью User, позволяет отслеживать, кто из пользователей просмотрел книгу.
+    pub_date = models.DateField(verbose_name='Дата створення', default=timezone.now) # Дата створення
     last_updated = models.DateTimeField(default=timezone.now)
     file = models.FileField(upload_to='books/', blank=True, null=True)
     status = models.CharField(max_length=50, choices=STATUS_CHOICES, default=TRANSLATING)
@@ -89,60 +93,22 @@ class Book(models.Model):
 
 
 
-        if self.status == Book.ABANDONED:
+        if self.status == Book.ABANDONED:                                                          #через tasks
             self.last_updated = timezone.now()
 
         super().save(*args, **kwargs)
 
 
+    def avg_rating(self):
+        avg = self.book_ratings.all().aggregate(Avg('stars'))
+        return round(avg.get('stars__avg') or 0, 2)
 
+    @property
+    def chapters_count(self):                       # количество глав
+        return self.book_chapters.count()
 
-
-
-
-    def set_status(self, new_status):
-        self.status = new_status
-        self.save()
-
-    def update_status_to_abandoned(self):
-        if self.status == 'translating':
-            self.status = 'abandoned'
-            self.status_date = timezone.now()
-            self.save()
-
-    def update_last_activity(self):
-        self.last_activity_date = timezone.now()
-        self.save()
-
-    def update_status(self, new_status):
-        self.status = new_status
-        self.save(update_fields=['status'])
-
-
-
-@shared_task
-def check_abandoned_books():
-    abandoned_threshold = timezone.now() - timedelta(days=14)
-    books_to_check = Book.objects.filter(status='translating', last_activity_date__lte=abandoned_threshold)
-
-    for book in books_to_check:
-        book.update_status_to_abandoned()
-
-@shared_task
-def send_abandoned_notification(book_id):
-    try:
-        book = Book.objects.get(id=book_id)
-        abandoned_threshold = timezone.now() - timedelta(days=7)
-        if book.status == 'translating' and book.last_activity_date <= abandoned_threshold:
-            # Вызвать метод для изменения статуса книги и даты статуса
-            book.update_status_to_abandoned()
-            # Отправить уведомление о переносе в статус "Покинуті"
-            notification_message = f'Книга "{book.title}" будет перенесена в статус "Покинуті" через 7 дней бездействия.'
-            Notification.objects.create(user=book.owner, message=notification_message)
-    except Book.DoesNotExist:
-        pass
-
-# Метод, который вызывается при изменении книги
+    def is_adult(self):
+        return self.is_adult  # Возвращаем значение поля is_adult
 
 
 
@@ -153,6 +119,9 @@ class Notification(models.Model):
 
     def __str__(self):
         return self.message
+
+
+
 
 
 
