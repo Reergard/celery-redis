@@ -11,7 +11,7 @@ logger = logging.getLogger(__name__)
 @shared_task
 def check_abandoned_books():
     try:
-        hour_ago = timezone.now() - timedelta(minutes=2)
+        hour_ago = timezone.now() - timedelta(minutes=1)
         books_to_update = Book.objects.filter(last_updated__lte=hour_ago, status=Book.TRANSLATING)
 
         print(f"Found {books_to_update.count()} books to update.")
