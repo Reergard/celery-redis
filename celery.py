@@ -13,12 +13,8 @@ app.config_from_object('django.conf:settings', namespace='CELERY')
 
 app.conf.broker_connection_retry_on_startup = True
 
-@app.task
-def debug_task():
-    print("Debug task executed")
 
-
-    app.conf.beat_schedule = {
+app.conf.beat_schedule = {
         #'send_abandoned_notification': {
         ##    'task': 'catalog.tasks.send_abandoned_notification',
         #    'schedule': crontab(minute='*/5'),  # Запускать каждый день в полночь (minute=0, hour=0)
@@ -34,6 +30,12 @@ def debug_task():
             'schedule': crontab(minute='1'),
         },
     }
+@app.task
+def debug_task():
+    print("Debug task executed")
+
+
+
 
 app.autodiscover_tasks()
 
