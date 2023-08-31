@@ -70,8 +70,8 @@ def send_abandoned_notification(book_id):
         pass
 
 def get_reergard_user():
-    # Здесь вы можете определить логику для выбора или создания пользователя
-    # Например, вернуть существующего пользователя или создать нового пользователя
+
+    #  вернуть существующего пользователя
     user, created = User.objects.get_or_create(username='reergard_user')
     return user
 
