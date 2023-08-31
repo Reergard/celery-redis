@@ -99,16 +99,16 @@ WSGI_APPLICATION = 'FanVerse.wsgi.application'
 # Настройки для Celery
 CELERY_BROKER_URL = 'redis://localhost:6379/0'
 CELERY_RESULT_BACKEND = 'redis://localhost:6379/0'
-CELERY_BEAT_SCHEDULER = 'django_celery_beat.schedulers.DatabaseScheduler'
+#CELERY_BEAT_SCHEDULER = 'django_celery_beat.schedulers.DatabaseScheduler'
 
 
 
-CELERY_BEAT_SCHEDULE = {
-    'check_abandoned_books': {
-        'task': 'catalog.tasks.check_abandoned_books',
-        'schedule': timedelta(minutes=2),  # Запускать каждые две минуты
-    },
-}
+#CELERY_BEAT_SCHEDULE = {
+#    'check_abandoned_books': {
+#        'task': 'catalog.tasks.check_abandoned_books',
+#        'schedule': timedelta(minutes=50),  # Запускать каждые две минуты
+#    },
+#}
 
 LOGGING = {
     'version': 1,
